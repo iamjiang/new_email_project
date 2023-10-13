@@ -1,0 +1,83 @@
+sealId: 105879
+node: python-3.8
+featureBranchPipelineTrigger: true
+baseVersion: 1.0.0
+blackduck:
+  artifactFilePatterns: '**/*.py'
+  criteria: BuildStatusForSealViolation=NONE,VulnerabilityThresholdForUnstable=MEDIUM,VulnerabilityThresholdForError=HIGH
+
+buildConfig:
+  env:
+    variables:
+      - PIP_INDEX_URL: https://artifacts-read.gkp.jpmchase.net/artifactory/api/pypi/pypi/simple/
+      - IDENTITY_SOURCE_AIM: JET
+      - IDENTITY_SOURCE_GKP: JET
+      - IDENTITY_SOURCE_ARTIFACTORY: JET
+
+ssap:
+  preProdScan: true
+  credentials: APP_CREDENTIALS
+
+sonarDetails:
+  sonarProdRoute: true
+  sourcesPath: app/
+  additionalProperties: >-
+    -Dsonar.projectBaseDir=${WORKSPACE}
+    -Dsonar.language=py
+    -Dsonar.python.xunit.reportPath=xunit.xml
+    -Dsonar.python.coverage.reportPaths=coverage.xml
+    -Dsonar.verbose=true
+    -Dsonar.exclusions=**/app/tests/**/test_*.py,**/__init__.py
+
+analysis:
+  - name: PR
+    scan: sonarQube
+  - name: develop
+    scan: sonarQube
+  - name: feature
+    scan: sonarQube
+
+testsight:
+  enabled: true
+  testReportDir: 'test-reports'
+
+container:
+  buildType: skaffold
+  skaffold:
+    skaffoldYaml: ./skaffold.yml
+    targetRegistry: containerregistry-na.jpmchase.net
+#    credentials: APP_CREDENTIALS
+    klogin:
+#      credentials: APP_CREDENTIALS   # FID H009272
+#      domainSuffix: '@naeast.ad.jpmorganchase.com'
+      endpoint: https://api.mt-d1.na-ne-cdc2.gkp.jpmchase.net:6443
+
+imageScan:
+  domainPrefix: NAEAST\
+  credentials: APP_CREDENTIALS
+#  idaClientId: PC-102491-SID-43498-PROD
+  idaClientId: PC-103020-N723012-33837-PROD # PC-102491-SID-43498-PROD
+
+kubernetes:
+  deploymentType: k8s
+
+mapping:
+  - name: feature
+    tasks:
+      preBuild:
+        - script: pip install --user -r requirements.txt --cache-dir /jenkins
+    container:
+      skaffold:
+        profile: jules-sandbox
+  - name: develop
+    container:
+      skaffold:
+        profile: jules-release
+  - name: release
+    container:
+      skaffold:
+        profile: jules-release
+  - name: master
+    container:
+      skaffold:
+        profile: jules-release

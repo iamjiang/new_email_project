@@ -1,0 +1,1 @@
+s3://app-id-105879-dep-id-105006-uu-id-owjkztywmzkt/smarsh-emails/monthly/raw/prod/

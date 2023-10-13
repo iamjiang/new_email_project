@@ -1,0 +1,29 @@
+apiVersion: skaffold/v1
+kind: Config
+build:
+  artifacts:
+    - image: containerregistry-na.jpmchase.net/container-sandbox/qualt/qualt-complaint-tfidf
+      kaniko:
+        buildContext:
+          localDir: {}
+  tagPolicy:
+    sha256: {}
+  cluster:
+    namespace: 105879-skaffoldkaniko-dev
+    resources:
+      limits:
+        ephemeralStorage: 8Gi
+profiles:
+  - name: local
+    patches:
+      - op: add
+        path: /build/cluster/dockerConfig
+        value: {secretName: "kaniko-secret"}
+  - name: jules-sandbox
+    build:
+      artifacts:
+        - image: containerregistry-na.jpmchase.net/container-sandbox/qualt/qualt-complaint-tfidf
+  - name: jules-release
+    build:
+      artifacts:
+        - image: containerregistry-na.jpmchase.net/container-release/qualt/qualt-complaint-tfidf

@@ -1,0 +1,15 @@
+#!groovy
+@Library('julesGlobalLibrary@6.STABLE') _
+
+// keep 5 builds
+properties([buildDiscarder(logRotator(numToKeepStr: '5'))])
+
+buildPipeline()
+
+def buildPipeline(String julesyml='jules.yml', Boolean modular=false) {
+    jules_pipelineRunner {
+        yml = julesyml
+        modularCiCd = modular
+        modularCiCdDefaultStagesToRun = "BUILD"
+    }
+}
